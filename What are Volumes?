@@ -1,0 +1,35 @@
+What are volumes in Docker? 
+Question: 
+I'm trying to go deeper in my understanding of Docker's volume, and I'm having an hard time to figure out the differences / use-case of:
+
+The docker volume create command
+The docker run -v /path:/host_path
+The VOLUME entry in the Dockerfile file
+I particularly don't understand what happens if you combine the VOLUME entry with the -v flag.
+
+Answer on StackOverflow: 
+A volume is a persistent data stored in /var/lib/docker/volumes/...
+
+You can either declare it in a Dockerfile, which means each time a container is started from the image, the volume is created (empty), even if you don't have any -v option.
+
+You can declare it on runtime docker run -v [host-dir:]container-dir.
+combining the two (VOLUME + docker run -v) means that you can mount the content of a host folder into your volume persisted by the container in /var/lib/docker/volumes/...
+
+docker volume create creates a volume without having to define a Dockerfile and build an image and run a container. It is used to quickly allow other containers to mount said volume.
+
+If you had persisted some content in a volume, but since then deleted the container (which by default does not deleted its associated volume, unless you are using docker rm -v), you can re-attach said volume to a new container (declaring the same volume).
+
+See "Docker - How to access a volume not attached to a container?".
+With docker volume create, this is easy to reattached a named volume to a container.
+
+docker volume create --name aname
+docker run -v aname:/apath --name acontainer
+...
+# modify data in /apath
+...
+docker rm acontainer
+
+# let's mount aname volume again
+docker run -v aname:/apath --name acontainer
+ls /apath
+# you find your data back!
